@@ -37,16 +37,18 @@ export function App() {
       } else {
         await addVideo(data)
       }
-      handleCloseFormModal()
     } catch (err) {
       setMessageModalData({
         title: "Erro",
-        message: `Erro ao ${editingVideo ? "atualizar" : "adicionar"} vídeo,`,
+        message: `Erro ao ${editingVideo ? "atualizar" : "adicionar"} vídeo. Tente novamente.`,
         actionLabel: "OK",
         onAction: () => setMessageModalData(null),
       })
 
-      console.error("Erro ao enviar formulário:", err)
+      console.error(
+        `Erro ao ${editingVideo ? "atualizar" : "adicionar"} vídeo:`,
+        err,
+      )
     }
   }
 
@@ -58,7 +60,6 @@ export function App() {
       onAction: async () => {
         try {
           await deleteVideo(id)
-          setMessageModalData(null)
         } catch (err) {
           setMessageModalData({
             title: "Erro",

@@ -1,9 +1,11 @@
+import { SpinnerGapIcon } from "@phosphor-icons/react"
+import { useState } from "react"
 import type { VideoFormData, VideoToEdit } from "../types"
 import { Modal } from "./Modal"
 
 type FormModalProps = {
   onClose: () => void
-  onSubmit: (data: VideoFormData) => void
+  onSubmit: (data: VideoFormData) => Promise<void>
   open?: boolean
   videoData: VideoToEdit | null
 }
@@ -14,7 +16,9 @@ export function FormModal({
   open = false,
   videoData,
 }: FormModalProps) {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const formData = new FormData(event.currentTarget)
@@ -24,8 +28,16 @@ export function FormModal({
       description: formData.get("description") as string,
     }
 
-    onSubmit(data)
-    onClose()
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit(data)
+      onClose()
+    } catch (err) {
+      console.error("Erro ao submeter vídeo:", err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -79,9 +91,20 @@ export function FormModal({
 
         <button
           type="submit"
-          className="self-end px-4 py-2 rounded-md bg-orange-200 text-neutral-900 font-semibold hover:bg-orange-300 transition-colors"
+          disabled={isSubmitting}
+          className="self-end px-4 py-2 rounded-md bg-orange-200 text-neutral-900 font-semibold hover:bg-orange-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-200 flex items-center gap-2"
         >
-          {videoData ? "Salvar alterações" : "Adicionar vídeo"}
+          {isSubmitting ? (
+            <>
+              <SpinnerGapIcon
+                className="animate-spin text-neutral-900 size-5"
+                aria-hidden="true"
+              />
+              Salvando...
+            </>
+          ) : (
+            <>{videoData ? "Salvar alterações" : "Adicionar vídeo"}</>
+          )}
         </button>
       </form>
     </Modal>

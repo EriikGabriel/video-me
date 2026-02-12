@@ -1,7 +1,9 @@
+import { SpinnerGapIcon } from "@phosphor-icons/react"
+import { useState } from "react"
 import { Modal } from "./Modal"
 
 interface MessageModalProps {
-  onAction?: () => void
+  onAction?: () => void | Promise<void>
   onClose: () => void
   open?: boolean
   title: string
@@ -19,9 +21,19 @@ export function MessageModal({
   actionLabel,
   cancelLabel = "Cancelar",
 }: MessageModalProps) {
-  const handleAction = () => {
-    onAction?.()
-    onClose()
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleAction = async () => {
+    setIsProcessing(true)
+
+    try {
+      await onAction?.()
+      onClose()
+    } catch (err) {
+      console.error("Erro ao executar ação do modal:", err)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -31,16 +43,28 @@ export function MessageModal({
 
         <div className="flex gap-2 justify-end">
           <button
-            className="px-4 py-2 rounded-md text-white font-semibold hover:bg-neutral-600 transition-colors"
+            disabled={isProcessing}
+            className="px-4 py-2 rounded-md text-white font-semibold hover:bg-neutral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onClose}
           >
             {cancelLabel}
           </button>
           <button
-            className="px-4 py-2 rounded-md bg-orange-200 text-neutral-900 font-semibold hover:bg-orange-300 transition-colors"
+            disabled={isProcessing}
+            className="px-4 py-2 rounded-md bg-orange-200 text-neutral-900 font-semibold hover:bg-orange-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-200 flex items-center gap-2"
             onClick={handleAction}
           >
-            {actionLabel}
+            {isProcessing ? (
+              <>
+                <SpinnerGapIcon
+                  className="animate-spin text-neutral-900 size-5"
+                  aria-hidden="true"
+                />
+                Processando...
+              </>
+            ) : (
+              actionLabel
+            )}
           </button>
         </div>
       </div>
