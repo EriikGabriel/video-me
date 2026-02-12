@@ -1,6 +1,6 @@
 import z from "zod"
-import { prisma } from "./lib/prisma"
-import { FastifyTypedInstance } from "./types"
+import { prisma } from "./lib/prisma.js"
+import { FastifyTypedInstance } from "./types.js"
 
 interface Video {
   id: string
