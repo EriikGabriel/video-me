@@ -1,7 +1,21 @@
 import { PlusIcon } from "@phosphor-icons/react"
+import { useState } from "react"
+import { FormModal } from "./components/FormModal"
 import { VideoListItem } from "./components/VideoListItem"
 
 export function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalAction, setModalAction] = useState<"add" | "edit">("add")
+
+  const handleOpenModal = (action: "add" | "edit") => {
+    setModalAction(action)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
   return (
     <>
       <main className="bg-zinc-900 min-w-dvh min-h-dvh h-full flex items-center justify-center">
@@ -22,6 +36,7 @@ export function App() {
             <button
               className="p-2 rounded-md absolute -top-5 right-5 bg-orange-200 z-10"
               aria-label="Adicionar novo vídeo"
+              onClick={() => handleOpenModal("add")}
             >
               <PlusIcon
                 className="inline text-neutral-900 size-5"
@@ -31,7 +46,6 @@ export function App() {
 
             <article
               className="w-full h-full border-2 border-dashed border-neutral-600 rounded-md hidden flex-col items-center justify-center gap-4"
-              role="status"
               aria-live="polite"
             >
               <div className="flex flex-col items-center gap-2">
@@ -64,6 +78,12 @@ export function App() {
             </ul>
           </section>
         </div>
+
+        <FormModal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          action={modalAction}
+        />
       </main>
     </>
   )
