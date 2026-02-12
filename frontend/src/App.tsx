@@ -3,32 +3,54 @@ import { useState } from "react"
 import { FormModal } from "./components/FormModal"
 import { MessageModal } from "./components/MessageModal"
 import { VideoListItem } from "./components/VideoListItem"
-import type { EditDataType, MessageModalDataType } from "./types"
+import { useVideos } from "./hooks/useVideos"
+import type { MessageModalData, VideoFormData, VideoToEdit } from "./types"
 
 export function App() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editModalData, setEditModalData] = useState<EditDataType | null>(null)
+  const { videos, addVideo, updateVideo, deleteVideo } = useVideos()
+
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [editingVideo, setEditingVideo] = useState<VideoToEdit | null>(null)
   const [messageModalData, setMessageModalData] =
-    useState<MessageModalDataType>(null)
+    useState<MessageModalData>(null)
 
-  const handleOpenModal = (data: EditDataType | null) => {
-    setEditModalData(data)
-    setIsModalOpen(true)
+  const handleOpenAddModal = () => {
+    setEditingVideo(null)
+    setIsFormModalOpen(true)
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
+  const handleOpenEditModal = (video: VideoToEdit) => {
+    setEditingVideo(video)
+    setIsFormModalOpen(true)
   }
 
-  const handleDeleteVideo = () => {
+  const handleCloseFormModal = () => {
+    setIsFormModalOpen(false)
+    setEditingVideo(null)
+  }
+
+  const handleFormSubmit = (data: VideoFormData) => {
+    if (editingVideo) {
+      updateVideo(editingVideo.id, data)
+    } else {
+      addVideo(data)
+    }
+  }
+
+  const handleOpenDeleteModal = (id: string, title: string) => {
     setMessageModalData({
       title: "Excluir vídeo",
-      message: `Tem certeza que deseja excluir o vídeo?`,
+      message: `Tem certeza que deseja excluir o vídeo "${title}"?`,
       actionLabel: "Excluir",
       onAction: () => {
+        deleteVideo(id)
         setMessageModalData(null)
       },
     })
+  }
+
+  const handlePlayVideo = (url: string) => {
+    window.open(url, "_blank")
   }
 
   return (
@@ -51,7 +73,7 @@ export function App() {
             <button
               className="p-2 rounded-md absolute -top-5 right-5 bg-orange-200 z-10"
               aria-label="Adicionar novo vídeo"
-              onClick={() => handleOpenModal(null)}
+              onClick={handleOpenAddModal}
             >
               <PlusIcon
                 className="inline text-neutral-900 size-5"
@@ -59,65 +81,57 @@ export function App() {
               />
             </button>
 
-            <article
-              className="w-full h-full border-2 border-dashed border-neutral-600 rounded-md hidden flex-col items-center justify-center gap-4"
-              aria-live="polite"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <h2 className="text-2xl font-semibold text-white">
-                  Nenhum vídeo adicionado
-                </h2>
-                <p className="text-center text-neutral-400">
-                  Clique no botão <strong>+</strong> para adicionar um novo
-                  vídeo
-                </p>
-              </div>
-            </article>
-
-            <ul className="flex flex-col gap-2 list-none">
-              <VideoListItem
-                title="Titulo do Vídeo 1"
-                description="Descrição breve do vídeo para dar mais contexto ao usuário."
-                url="https://example.com/video1"
-                onEdit={() =>
-                  handleOpenModal({
-                    title: "Titulo do Vídeo 1",
-                    description:
-                      "Descrição breve do vídeo para dar mais contexto ao usuário.",
-                    url: "https://example.com/video1",
-                  })
-                }
-                onDelete={handleDeleteVideo}
-              />
-              <VideoListItem
-                title="Titulo do Vídeo 2"
-                description="Descrição breve do vídeo para dar mais contexto ao usuário."
-                url="https://example.com/video2"
-                onDelete={handleDeleteVideo}
-              />
-              <VideoListItem
-                title="Titulo do Vídeo 3"
-                description="Descrição breve do vídeo para dar mais contexto ao usuário."
-                url="https://example.com/video3"
-                onDelete={handleDeleteVideo}
-              />
-            </ul>
+            {videos.length === 0 ? (
+              <article className="w-full h-full border-2 border-dashed border-neutral-600 rounded-md flex flex-col items-center justify-center gap-4">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex flex-col items-center gap-2"
+                >
+                  <h2 className="text-2xl font-semibold text-white">
+                    Nenhum vídeo adicionado
+                  </h2>
+                  <p className="text-center text-neutral-400">
+                    Clique no botão <strong>+</strong> para adicionar um novo
+                    vídeo
+                  </p>
+                </div>
+              </article>
+            ) : (
+              <ul className="flex flex-col gap-2 list-none">
+                {videos.map((video) => (
+                  <VideoListItem
+                    key={video.id}
+                    title={video.title}
+                    description={video.description}
+                    onPlay={() => handlePlayVideo(video.url)}
+                    onEdit={() => handleOpenEditModal(video)}
+                    onDelete={() =>
+                      handleOpenDeleteModal(video.id, video.title)
+                    }
+                  />
+                ))}
+              </ul>
+            )}
           </section>
         </div>
 
         <FormModal
-          open={isModalOpen}
-          onClose={handleCloseModal}
-          videoData={editModalData}
+          open={isFormModalOpen}
+          onClose={handleCloseFormModal}
+          onSubmit={handleFormSubmit}
+          videoData={editingVideo}
         />
-        <MessageModal
-          title={messageModalData?.title || ""}
-          message={messageModalData?.message || ""}
-          actionLabel={messageModalData?.actionLabel || "OK"}
-          onClose={() => setMessageModalData(null)}
-          onAction={messageModalData?.onAction}
-          open={!!messageModalData}
-        />
+        {messageModalData && (
+          <MessageModal
+            title={messageModalData.title}
+            message={messageModalData.message}
+            actionLabel={messageModalData.actionLabel}
+            onClose={() => setMessageModalData(null)}
+            onAction={messageModalData.onAction}
+            open={true}
+          />
+        )}
       </main>
     </>
   )

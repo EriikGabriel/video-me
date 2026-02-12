@@ -1,34 +1,30 @@
-import type { EditDataType } from "../types"
+import type { VideoFormData, VideoToEdit } from "../types"
 import { Modal } from "./Modal"
 
 type FormModalProps = {
   onClose: () => void
+  onSubmit: (data: VideoFormData) => void
   open?: boolean
-  videoData: EditDataType | null
+  videoData: VideoToEdit | null
 }
 
 export function FormModal({
   onClose,
+  onSubmit,
   open = false,
   videoData,
 }: FormModalProps) {
-  const addVideo = () => {
-    // Lógica para adicionar vídeo
-  }
-
-  const editVideo = () => {
-    // Lógica para editar vídeo
-  }
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (videoData) {
-      editVideo()
-    } else {
-      addVideo()
+    const formData = new FormData(event.currentTarget)
+    const data: VideoFormData = {
+      title: formData.get("title") as string,
+      url: formData.get("url") as string,
+      description: formData.get("description") as string,
     }
 
+    onSubmit(data)
     onClose()
   }
 
