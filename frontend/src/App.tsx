@@ -1,20 +1,34 @@
 import { PlusIcon } from "@phosphor-icons/react"
 import { useState } from "react"
 import { FormModal } from "./components/FormModal"
+import { MessageModal } from "./components/MessageModal"
 import { VideoListItem } from "./components/VideoListItem"
-import type { DataType } from "./types"
+import type { EditDataType, MessageModalDataType } from "./types"
 
 export function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editModalData, setEditModalData] = useState<DataType | null>(null)
+  const [editModalData, setEditModalData] = useState<EditDataType | null>(null)
+  const [messageModalData, setMessageModalData] =
+    useState<MessageModalDataType>(null)
 
-  const handleOpenModal = (data: DataType | null) => {
+  const handleOpenModal = (data: EditDataType | null) => {
     setEditModalData(data)
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
+  }
+
+  const handleDeleteVideo = () => {
+    setMessageModalData({
+      title: "Excluir vídeo",
+      message: `Tem certeza que deseja excluir o vídeo?`,
+      actionLabel: "Excluir",
+      onAction: () => {
+        setMessageModalData(null)
+      },
+    })
   }
 
   return (
@@ -73,16 +87,19 @@ export function App() {
                     url: "https://example.com/video1",
                   })
                 }
+                onDelete={handleDeleteVideo}
               />
               <VideoListItem
                 title="Titulo do Vídeo 2"
                 description="Descrição breve do vídeo para dar mais contexto ao usuário."
                 url="https://example.com/video2"
+                onDelete={handleDeleteVideo}
               />
               <VideoListItem
                 title="Titulo do Vídeo 3"
                 description="Descrição breve do vídeo para dar mais contexto ao usuário."
                 url="https://example.com/video3"
+                onDelete={handleDeleteVideo}
               />
             </ul>
           </section>
@@ -92,6 +109,14 @@ export function App() {
           open={isModalOpen}
           onClose={handleCloseModal}
           videoData={editModalData}
+        />
+        <MessageModal
+          title={messageModalData?.title || ""}
+          message={messageModalData?.message || ""}
+          actionLabel={messageModalData?.actionLabel || "OK"}
+          onClose={() => setMessageModalData(null)}
+          onAction={messageModalData?.onAction}
+          open={!!messageModalData}
         />
       </main>
     </>

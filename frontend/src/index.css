@@ -29,7 +29,7 @@ button {
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
-  color: oklch(21% 0.006 285.885);
+
   transition:
     color 0.25s,
     background-color 0.25s;
