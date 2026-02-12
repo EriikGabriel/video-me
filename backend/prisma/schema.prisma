@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  url         String
+  createdAt   DateTime @default(now())
+
+  @@map("videos")
+}
