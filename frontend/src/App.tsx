@@ -80,8 +80,8 @@ export function App() {
 
   return (
     <>
-      <main className="bg-zinc-900 min-w-dvh min-h-dvh h-full flex items-center justify-center">
-        <div className="flex flex-col w-1/2 h-[80vh] gap-8">
+      <main className="bg-zinc-900 min-h-screen flex items-center justify-center py-8">
+        <div className="flex flex-col w-1/2 min-h-[80vh] gap-8">
           <div className="flex flex-col gap-2">
             <h1 className="text-4xl font-bold text-center">
               Bem vindo ao <span className="text-orange-200">VideoMe</span>
