@@ -1,4 +1,5 @@
 import type { MultipartValue } from "@fastify/multipart"
+import type { UploadApiErrorResponse, UploadApiResponse } from "cloudinary"
 import { Readable } from "node:stream"
 import z from "zod"
 import { cloudinary } from "./lib/cloudinary.js"
@@ -97,7 +98,7 @@ export async function routes(server: FastifyTypedInstance) {
                 folder: "videome",
                 use_filename: true,
               },
-              (error, result) => {
+              (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                 if (error) reject(error)
                 else if (result) resolve(result as CloudinaryUploadResult)
               },
@@ -187,7 +188,7 @@ export async function routes(server: FastifyTypedInstance) {
                 folder: "videome",
                 use_filename: true,
               },
-              (error, result) => {
+              (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                 if (error) reject(error)
                 else if (result) resolve(result as CloudinaryUploadResult)
               },
