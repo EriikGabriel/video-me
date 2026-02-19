@@ -1,6 +1,6 @@
 # 🎬 VideoMe
 
-Aplicação web para gerenciar e organizar seus vídeos favoritos do YouTube. Adicione, edite, visualize e exclua vídeos com uma interface moderna e intuitiva.
+Aplicação web para gerenciar e organizar seus vídeos. Faça upload de arquivos de vídeo direto para o Cloudinary com armazenamento seguro e CDN. Edite, visualize e exclua vídeos com uma interface moderna e intuitiva.
 
 ## 🌐 Acesso em Produção
 
@@ -32,16 +32,20 @@ Aplicação web para gerenciar e organizar seus vídeos favoritos do YouTube. Ad
 ### **Backend**
 
 - **Fastify** - Framework escolhido por ser mais rápido e mais atualizado do que o Express, com suporte nativo a TypeScript e validação de schemas
+- **@fastify/multipart** - Plugin para upload de arquivos com suporte a streams e validação de tamanho
 - **TypeScript** - Garante type safety entre camadas e facilita refatoração
 - **Prisma ORM** - ORM type-safe com migrations automáticas e geração de types. Optei por usar um ORM, pois assim desacopla a lógica, assim facilitando caso o banco de dados venha a mudar.
 - **PostgreSQL (Neon)** - Banco relacional robusto em versão serverless com scaling automático
+- **Cloudinary** - Serviço de armazenamento e CDN para vídeos, oferecendo upload, transformação e entrega otimizada
 - **Zod** - Validação de schemas com inferência de tipos, integrado ao Fastify para validação automática de request/response
 - **Swagger** - Documentação gerada automaticamente dos schemas Zod, mantendo docs sempre atualizadas
 
 #### **Decisões de Arquitetura Backend:**
 
 - **Validação em Camada de Rota**: Schemas Zod nas rotas para validação imediata e documentação automática
-- **Arquitetura Simples**: Rotas -> Prisma -> DB. Sem camadas extras, já que a lógica é direta
+- **Multipart Upload**: Usando `@fastify/multipart` para receber arquivos de vídeo com limite de 100MB
+- **Cloudinary Integration**: Upload direto para Cloudinary com armazenamento de `public_id`
+- **Arquitetura Simples**: Rotas -> Cloudinary Upload -> Prisma -> DB. Sem camadas extras, já que a lógica é direta
 - **UUID como ID**: Mais seguro que IDs sequenciais, evita enumeration attacks
 - **Porta Dinâmica**: Suporta PORT do ambiente para deploy em plataformas como Render
 
@@ -81,11 +85,15 @@ npm install
 
 #### 2.2. Configurar Variáveis de Ambiente
 
-Crie um arquivo `.env` na pasta `backend/`:\
-E insira sua string de conexão com o banco de dados desejado
+Crie um arquivo `.env` na pasta `backend/`:
 
 ```env
-DATABASE_URL="postgresql://sua-string-de-conexão
+DATABASE_URL="postgresql://sua-string-de-conexão"
+
+# Cloudinary Configuration (obrigatório para upload de vídeos)
+CLOUDINARY_CLOUD_NAME=seu_cloud_name
+CLOUDINARY_API_KEY=sua_api_key
+CLOUDINARY_API_SECRET=seu_api_secret
 ```
 
 #### 2.3. Aplicar Migrations no Banco
@@ -144,7 +152,7 @@ video-app/
 │   │   ├── schema.prisma   # Definição do modelo de dados
 │   │   └── migrations/     # Histórico de migrations
 │   ├── src/
-│   │   ├── lib/            # Configurações (Prisma Client)
+│   │   ├── lib/            # Configurações de bibliotecas
 │   │   ├── routes.ts       # Rotas da API
 │   │   ├── server.ts       # Configuração do servidor
 │   │   └── types.ts        # Tipos TypeScript
@@ -173,38 +181,43 @@ video-app/
 
 ## 🎯 Funcionalidades
 
-- ✅ **Adicionar vídeos** do YouTube com validação de URL
-- ✅ **Editar informações** com feedback visual durante o salvamento
-- ✅ **Excluir vídeos** com modal de confirmação para evitar ações acidentais
-- ✅ **Visualizar thumbnails** automáticas extraídas da URL do YouTube (suporta múltiplos formatos)
-- ✅ **Abrir vídeos** em nova aba para manter contexto da aplicação
+- ✅ **Upload de vídeos** direto para o Cloudinary com validação de tipo e tamanho (até 100MB)
+- ✅ **Editar vídeos** incluindo substituição de arquivo com feedback visual durante o salvamento
+- ✅ **Excluir vídeos** com modal de confirmação e remoção automática do Cloudinary
+- ✅ **Visualizar vídeos** com player integrado usando URLs otimizadas do Cloudinary CDN
 - ✅ **Feedback visual** com spinners e estados de loading/error em todas operações assíncronas
 - ✅ **Validação robusta** com Zod tanto no frontend quanto backend (double validation)
 - ✅ **Documentação Swagger** gerada automaticamente dos schemas Zod
+- ✅ **Armazenamento seguro** com IDs do Cloudinary para gerenciamento de assets
 
 ---
 
 ## 📡 Endpoints da API
 
-| Método   | Endpoint      | Descrição              |
-| -------- | ------------- | ---------------------- |
-| `GET`    | `/videos`     | Lista todos os vídeos  |
-| `POST`   | `/videos`     | Adiciona um novo vídeo |
-| `PATCH`  | `/videos/:id` | Atualiza um vídeo      |
-| `DELETE` | `/videos/:id` | Exclui um vídeo        |
-| `GET`    | `/docs`       | Documentação Swagger   |
+| Método   | Endpoint      | Descrição                            |
+| -------- | ------------- | ------------------------------------ |
+| `GET`    | `/videos`     | Lista todos os vídeos                |
+| `POST`   | `/videos`     | Faz upload de um novo vídeo          |
+| `PATCH`  | `/videos/:id` | Atualiza vídeo (incluindo o arquivo) |
+| `DELETE` | `/videos/:id` | Exclui vídeo e remove do Cloudinary  |
+| `GET`    | `/docs`       | Documentação Swagger                 |
 
 ### Exemplo de Requisição
 
-**POST /videos**
+**POST /videos** (multipart/form-data)
 
-```json
-{
-  "title": "Meu Vídeo",
-  "description": "Descrição do vídeo",
-  "url": "https://www.youtube.com/watch?v=S9uPNppGsGo"
-}
+```bash
+curl -X POST http://localhost:3000/videos \
+  -F "title=Meu Vídeo" \
+  -F "description=Descrição do vídeo" \
+  -F "file=@./video.mp4"
 ```
+
+**Campos do formulário:**
+
+- `title` (string, obrigatório) - Título do vídeo
+- `description` (string, obrigatório) - Descrição do vídeo
+- `file` (arquivo, obrigatório) - Arquivo de vídeo (máx 100MB)
 
 ---
 
@@ -212,11 +225,12 @@ video-app/
 
 ```prisma
 model Video {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  url         String
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  url          String
+  cloudinaryId String
+  createdAt    DateTime @default(now())
 
   @@map("videos")
 }
@@ -225,6 +239,8 @@ model Video {
 **Decisões de Modelagem:**
 
 - **UUID como Primary Key**: Mais seguro que auto-increment, evita exposição de registros
+- **cloudinaryId**: Armazena o public_id do Cloudinary para gerenciamento e exclusão de assets
+- **url**: URL otimizada do CDN do Cloudinary para entrega rápida do vídeo
 - **Campos Required**: Todos campos obrigatórios para garantir integridade dos dados
 - **@@map("videos")**: Nome da tabela no plural para convenção SQL padrão
 
@@ -238,11 +254,11 @@ O diagrama abaixo ilustra o fluxo completo desde a interação do usuário até 
 
 **Fluxo:**
 
-1. Usuário preenche formulário com título, URL e descrição
-2. Frontend valida e envia requisição POST para o backend
-3. Backend valida dados com Zod e persiste no banco
+1. Usuário preenche formulário com título, descrição e seleciona arquivo de vídeo
+2. Frontend valida e envia requisição multipart/form-data para o backend
+3. Backend valida dados com Zod, faz upload para o Cloudinary e persiste no banco
 4. Após sucesso, frontend busca lista atualizada de vídeos
-5. Interface é atualizada exibindo o novo vídeo cadastrado
+5. Interface é atualizada exibindo o novo vídeo com URL do Cloudinary CDN
 
 ---
 
@@ -258,6 +274,9 @@ O diagrama abaixo ilustra o fluxo completo desde a interação do usuário até 
    - **Start Command**: `npm start`
 4. Adicione a variável de ambiente:
    - `DATABASE_URL`: Connection string do Neon
+   - `CLOUDINARY_CLOUD_NAME`: Nome da nuvem na Cloudinary
+   - `CLOUDINARY_API_KEY`: Chave de API da Cloudinary
+   - `CLOUDINARY_API_SECRET`: Secret de API da Cloudinary
 
 ### Frontend (Vercel)
 

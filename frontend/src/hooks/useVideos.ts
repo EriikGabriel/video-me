@@ -37,7 +37,13 @@ export function useVideos() {
 
   const addVideo = async (data: VideoFormData) => {
     try {
-      await api.post("/videos", data)
+      const formData = new FormData()
+      formData.append("title", data.title)
+      formData.append("description", data.description)
+      formData.append("file", data.video)
+
+      await axios.post(`${API_URL}/videos`, formData)
+
       await fetchVideos()
     } catch (err) {
       console.error("Erro ao adicionar vídeo:", err)
@@ -47,7 +53,13 @@ export function useVideos() {
 
   const updateVideo = async (id: string, data: VideoFormData) => {
     try {
-      await api.patch(`/videos/${id}`, data)
+      const formData = new FormData()
+      formData.append("title", data.title)
+      formData.append("description", data.description)
+      formData.append("file", data.video)
+
+      await axios.patch(`${API_URL}/videos/${id}`, formData)
+
       await fetchVideos()
     } catch (err) {
       console.error("Erro ao atualizar vídeo:", err)

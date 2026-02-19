@@ -3,12 +3,13 @@ export type Video = {
   title: string
   description: string
   url: string
+  cloudinaryId: string
 }
 
 export type VideoFormData = {
   title: string
   description: string
-  url: string
+  video: File
 }
 
 export type VideoToEdit = {
@@ -16,6 +17,7 @@ export type VideoToEdit = {
   title: string
   description: string
   url: string
+  cloudinaryId: string
 }
 
 export type MessageModalData = {

@@ -107,7 +107,7 @@ export function App() {
             </button>
 
             {loading ? (
-              <article className="w-full h-full border-2 border-dashed border-neutral-600 rounded-md flex flex-col items-center justify-center gap-4">
+              <article className="w-full min-h-80 h-full border-2 border-dashed border-neutral-600 rounded-md flex flex-col items-center justify-center gap-4">
                 <div
                   role="status"
                   aria-live="polite"
@@ -132,7 +132,7 @@ export function App() {
                 </div>
               </article>
             ) : videos.length === 0 ? (
-              <article className="w-full h-full border-2 border-dashed border-neutral-600 rounded-md flex flex-col items-center justify-center gap-4">
+              <article className="w-full min-h-80 h-full border-2 border-dashed border-neutral-600 rounded-md flex flex-col items-center justify-center gap-4">
                 <div
                   role="status"
                   aria-live="polite"

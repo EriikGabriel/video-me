@@ -1,4 +1,5 @@
 import fastifyCors from "@fastify/cors"
+import fastifyMultipart from "@fastify/multipart"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUi from "@fastify/swagger-ui"
 import { fastify } from "fastify"
@@ -18,7 +19,16 @@ server.setSerializerCompiler(serializerCompiler)
 server.register(fastifyCors, {
   origin: "*",
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Content-Type"],
+  credentials: false,
+})
+
+server.register(fastifyMultipart, {
+  attachFieldsToBody: false,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB
+  },
 })
 
 server.register(fastifySwagger, {

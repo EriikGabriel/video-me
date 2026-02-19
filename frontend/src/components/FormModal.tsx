@@ -22,10 +22,17 @@ export function FormModal({
     event.preventDefault()
 
     const formData = new FormData(event.currentTarget)
+    const videoFile = formData.get("video") as File
+
+    if (!videoFile || videoFile.size === 0) {
+      alert("Por favor, selecione um arquivo de vídeo")
+      return
+    }
+
     const data: VideoFormData = {
       title: formData.get("title") as string,
-      url: formData.get("url") as string,
       description: formData.get("description") as string,
+      video: videoFile,
     }
 
     setIsSubmitting(true)
@@ -62,20 +69,6 @@ export function FormModal({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="url" className="text-sm text-neutral-400">
-            URL do vídeo
-          </label>
-          <input
-            type="url"
-            id="url"
-            name="url"
-            className="w-full p-2 rounded-md bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-200"
-            defaultValue={videoData?.url}
-            required
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
           <label htmlFor="description" className="text-sm text-neutral-400">
             Descrição do vídeo
           </label>
@@ -85,6 +78,20 @@ export function FormModal({
             rows={4}
             className="w-full p-2 rounded-md bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none"
             defaultValue={videoData?.description}
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="video" className="text-sm text-neutral-400">
+            Arquivo de vídeo
+          </label>
+          <input
+            type="file"
+            id="video"
+            name="video"
+            accept="video/*"
+            className="w-full p-2 rounded-md bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-orange-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-200 file:text-neutral-900 hover:file:bg-orange-300"
             required
           />
         </div>
