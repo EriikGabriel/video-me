@@ -5,5 +5,4 @@ dist
 .env.production
 *.log
 src/generated
-lib
 uploads
