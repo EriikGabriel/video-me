@@ -5,13 +5,13 @@
 
   "compilerOptions": {
     "lib": ["ES2023"],
-    "module": "Node16",
+    "module": "NodeNext",
     "target": "ES2022",
 
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "Node16",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "resolveJsonModule": true,
